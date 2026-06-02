@@ -1,1 +1,2 @@
-This branch contains the Dockerfile and the necessary file to build an image 
+# This branch contains all necessary file to build an image 
+this includes a Dockerfile
