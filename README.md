@@ -1,6 +1,6 @@
 # This branch will aggregate all the other branch
 
-## setting up
+## setting up (in chronological order)
 - clone.sh = this will clone all the other branch
 - microk8s_setup.sh = installs microk8s and **will reboot**
 - microk8s_setup_2.sh = enable ingress and registry
@@ -16,12 +16,8 @@ graph LR
     WA[web-API]
     WS[web-server]
 
-    WC --> DB --> WS
-    DB --> AN --> DB
-    
-    
-
-
-
+    WC --raw_data--> DB 
+    DB --raw_data--> AN --summary--> DB
+    DB --summary--> WS & WA
+    WS & WA --web_page--> ingress
 ```
-AN --> DB --> AN
