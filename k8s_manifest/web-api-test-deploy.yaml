@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-api-test-deploy
+spec:
+  replicas: 2
+  selector: 
+    matchLabels:
+      app: web-api-test
+  
+  template:
+    metadata:
+      labels:
+        app: web-api-test
+    spec:
+      containers:
+        - name: web-api-test-cont
+          image: localhost:32000/web-api-test:latest
+          ports:
+            - name: http
+              protocol: TCP
+              containerPort: 8000

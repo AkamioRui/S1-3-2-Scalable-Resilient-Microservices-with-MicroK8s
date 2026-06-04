@@ -1,5 +1,5 @@
 # Application Design & Image Workflow
-Develop or adapt a stateless web application (e.g., a REST API, a web scraper, or a task processor).
+1. Develop or adapt a stateless web application (e.g., a REST API, a web scraper, or a task processor).
 Create optimized Dockerfiles for your services.
 Workflow: You must push your images to your local registry and configure MicroK8s to pull from this registry (rather than public Docker Hub).
 

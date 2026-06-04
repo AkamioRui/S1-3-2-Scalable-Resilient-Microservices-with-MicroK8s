@@ -1,0 +1,14 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.32.1-standalone-strict/service.json
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-api-test-svc
+spec:
+  selector:
+    app: web-api-test
+  ports:
+    - port: 80
+      targetPort: 8000 ## possible mutation
+
+
+
