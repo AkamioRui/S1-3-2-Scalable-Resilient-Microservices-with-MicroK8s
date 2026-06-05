@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: web-api-test-deploy
 spec:
-  replicas: 2
+  replicas: 1
   selector: 
     matchLabels:
       app: web-api-test
@@ -13,10 +13,15 @@ spec:
       labels:
         app: web-api-test
     spec:
+      terminationGracePeriodSeconds: 3
       containers:
         - name: web-api-test-cont
           image: localhost:32000/web-api-test:latest
           ports:
             - name: http
               protocol: TCP
-              containerPort: 8000
+              containerPort: 80
+          resources:
+            limits:
+              memory: 64M
+          

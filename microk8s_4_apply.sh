@@ -4,12 +4,25 @@ cd k8s_manifest/
 
 ls | xargs -I {file} sh -c 'set -x; microk8s kubectl apply -f {file}';
 echo -e "=============== applied all ===============\n"
-microk8s kubectl get all;
-microk8s kubectl get pod -o wide;
+
 
 )
 
+update_deploy(){
+    microk8s kubectl get deployments| grep deploy | awk '{print $1}' | \
+    xargs -I {} microk8s kubectl rollout restart deployment {}
+    echo -e "=============== restarted ===============\n"
+
+    # microk8s kubectl get all; 
+    # microk8s kubectl get pod -o wide;
+}
+update_deploy
+
+
+
+
 test_web_LB(){
+
     kubectl get services -o wide
     kubectl get pods -o wide
     IP=$(kubectl get all| grep 'service/web-api-test-svc' | awk '{print $3}')

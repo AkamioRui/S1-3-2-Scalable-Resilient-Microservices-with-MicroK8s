@@ -8,7 +8,7 @@ spec:
     app: web-api-test
   ports:
     - port: 80
-      targetPort: 8000 ## possible mutation
+      targetPort: 80 ## possible mutation
 
 
 
