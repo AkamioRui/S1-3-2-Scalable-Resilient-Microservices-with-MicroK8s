@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY main.py .
 
-RUN pip install fastapi uvicorn --no-cache-dir
+RUN pip install fastapi uvicorn psycopg2-binary --no-cache-dir
 
 EXPOSE 80
 

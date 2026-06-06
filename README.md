@@ -8,11 +8,14 @@ A lightweight REST API service built with FastAPI that serves stock market data.
 - `GET /prices?ticker=AAPL` — returns raw stock price data
 - `GET /analysis?ticker=AAPL` — returns technical analysis data (RSI, MA50, MA200, MACD)
 
+The `source` field in each response indicates whether data came from `database` or `dummy` (fallback).
+
 ## Stack
 
 - Python 3.11
 - FastAPI
 - Uvicorn
+- psycopg2
 - Docker image: `localhost:32000/web-api:latest`
 
 ## Architecture
@@ -29,6 +32,20 @@ Data flow: `web-scrapper → database → analyzer → database → web-api → 
 - **Ingress:** Routes `api.myapp.com` to this service
 - **HPA:** Auto-scales from 2 to 5 replicas at 50% CPU utilization
 - **Resources:** requests 100m CPU / 64Mi RAM, limits 250m CPU / 128Mi RAM
+
+## Database Integration
+
+The API connects to the database service via environment variables:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| DB_HOST | database-svc | Database service hostname |
+| DB_PORT | 5432 | Database port |
+| DB_NAME | stockdb | Database name |
+| DB_USER | stockuser | Database user |
+| DB_PASSWORD | stockpassword | Database password |
+
+If the database is unavailable, the API automatically falls back to dummy data.
 
 ## Building the image
 
