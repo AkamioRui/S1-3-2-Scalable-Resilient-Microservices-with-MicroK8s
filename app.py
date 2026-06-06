@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request
 import psycopg2  # type: ignore
 import psycopg2.extras  # type: ignore
 import os
@@ -92,6 +92,34 @@ def summary():
         cur.close()
         conn.close()
         return jsonify([dict(r) for r in rows])
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+
+@app.route("/api/search")
+def search():
+    ticker = request.args.get("ticker", "").upper().strip()
+    if not ticker:
+        return jsonify({"error": "ticker is required"}), 400
+    try:
+        conn = get_conn()
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute("""
+            SELECT DISTINCT ON (p.ticker)
+                p.ticker, p.close, p.open, p.high, p.low, p.volume, p.ts,
+                a.rsi, a.ma_50, a.ma_200, a.macd, a.signal_line
+            FROM stock_prices p
+            LEFT JOIN stock_analysis a ON p.ticker = a.ticker AND p.ts = a.ts
+            WHERE p.ticker = %s
+            ORDER BY p.ticker, p.ts DESC
+        """, (ticker,))
+        row = cur.fetchone()
+        cur.close()
+        conn.close()
+        if not row:
+            return jsonify({"error": "not found"}), 404
+        return jsonify(dict(row))
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
