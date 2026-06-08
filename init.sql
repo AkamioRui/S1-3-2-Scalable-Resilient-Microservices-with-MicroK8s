@@ -1,6 +1,3 @@
--- ============================================================
--- Stock Technical Analysis DB - Initialization Script
--- ============================================================
 
 -- Raw stock price data
 CREATE TABLE IF NOT EXISTS stock_prices (
@@ -28,7 +25,7 @@ CREATE TABLE IF NOT EXISTS stock_analysis (
     signal_line NUMERIC(12, 4),     -- ^
     created_at  TIMESTAMP       DEFAULT NOW(),
     UNIQUE (ticker, ts)
-)
+);
 
 -- speed up indexes lookups by ticker and time
 CREATE INDEX IF NOT EXISTS idx_prices_ticker_ts     ON stock_prices     (ticker, ts DESC);
