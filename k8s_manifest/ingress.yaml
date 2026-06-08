@@ -5,14 +5,14 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: api.myapp.com
+    - host: api-test.myapp.com
       http: 
         paths:  
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: web-api-test-svc # TODO remove test
+                name: web-api-test-svc 
                 port: 
                   number: 80
 

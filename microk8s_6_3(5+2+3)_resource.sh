@@ -14,11 +14,11 @@ read a
 ############### sending one request ###############
 echo -e "\n"
 echo "############### sending one request ###############"
-stress_cmd="curl -fs -H 'Host: api.myapp.com' localhost:$ingress_port/stress.php"
+stress_cmd="curl -fsS -H 'Host: api-test.myapp.com' localhost:$ingress_port/stress.php"
 echo $stress_cmd
 echo "=============================="
 
-bash -c " curl -fs -H 'Host: api.myapp.com' localhost:$ingress_port/stress.php >/dev/null ; echo -e \"\nexit code = \$?\"" &
+bash -c " $stress_cmd ; echo -e \"\nexit code = \$?\"" &
 curl_pid=$! 
 while ps -p $curl_pid 1>/dev/null ; do echo -n '.'; sleep 1; done
 read a
@@ -28,7 +28,8 @@ read a
 
 
 send_many_request(){
-    mycurl="curl -fsS -H 'Host: api.myapp.com' localhost:$ingress_port/stress.php"
+    # mycurl="curl -fsS -H 'Host: api.myapp.com' localhost:$ingress_port/stress.php"
+    mycurl=$stress_cmd
     epoch=$1 # limit is 40
     echo "seq $epoch| xargs -I {} -P $epoch bash -c \"
         $mycurl > /dev/null 

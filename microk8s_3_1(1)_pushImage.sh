@@ -1,5 +1,5 @@
 ### enable registry     
-# microk8s enable registry     
+   
 
 ### push image 
 podman images | grep 'localhost:32000/' | awk '{print $1":"$2}' | xargs -I {image} sh -c 'set -x;podman push --tls-verify=false {image}'
@@ -16,7 +16,7 @@ images_in_repository
 
 ### ============== verify image in manifest ===============
 images_in_manifest(){
-    ls k8s_manifest | xargs -I {} sh -c ' echo "image from k8s_manifest/{}\n" ; cat k8s_manifest/{} ' | grep image | grep -P 'localhost:32000|$'
+    ls k8s_manifest | xargs -I {} sh -c ' echo "image from k8s_manifest/{}\n" ; cat k8s_manifest/{} ' | grep image | grep -P --color=always 'localhost:32000|$'
 }
 images_in_manifest
 

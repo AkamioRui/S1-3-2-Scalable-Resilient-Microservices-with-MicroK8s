@@ -1,4 +1,4 @@
-# microk8s enable ingress
+
 
 
 test_ingress(){
@@ -10,7 +10,7 @@ test_ingress(){
         microk8s kubectl get all -n ingress | grep service | awk '{print $5}' |\
         grep -oP '(?<=80:).*?(?=/TCP)'  
     )
-    curl_cmd="curl -s -H 'Host: api.myapp.com' http://localhost:$http_nodeport/hello.php"
+    curl_cmd="curl -s -H 'Host: api-test.myapp.com' http://localhost:$http_nodeport/hello.php"
     echo $curl_cmd
     read a
 

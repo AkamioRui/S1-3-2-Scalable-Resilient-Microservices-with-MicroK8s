@@ -1,6 +1,6 @@
 # creating and pushing the image
 (
-cd deleteme # change this into images
+cd images 
 podman-compose build;
 if [ $? -eq 0 ]; then
     echo -e "\n=============== build completed ===============\n";
