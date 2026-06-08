@@ -22,7 +22,7 @@ verify_podman(){
 }
 close_podman(){
     (
-        cd deleteme
+        cd images
         podman-compose down --timeout 1;
     )
 }
