@@ -1,0 +1,9 @@
+
+services:
+  web-api-test-svc: ## for demonstration
+    build: ./web-api-test/
+    image: localhost:32000/web-api-test:latest
+    ports:
+      - 8000:80
+    volumes:
+      - ./web-api-test/:/var/www/html/
