@@ -1,13 +1,14 @@
 # existing image
-FROM postgres:16-alpine
+FROM mariadb:11
 
 # default credential for testing
-ENV POSTGRES_DB=stockdb
-ENV POSTGRES_USER=stockuser
-ENV POSTGRES_PASSWORD=stockpassword
+ENV MARIADB_DATABASE=stockdb
+ENV MARIADB_USER=stockuser
+ENV MARIADB_PASSWORD=stockpassword
+ENV MARIADB_ROOT_PASSWORD=rootpassword
 
-# copies init.sql from local machine
+# Copy initialization script
 COPY init.sql /docker-entrypoint-initdb.d/init.sql
 
-# PostgreSQL default port
-EXPOSE 5432
+# MariaDB default port
+EXPOSE 3306
