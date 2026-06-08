@@ -13,7 +13,7 @@ fi
 # # verifying image function
 verify_podman(){
     (
-        cd deleteme
+        cd images
         podman-compose down --timeout 1;
         podman-compose up -d;
         podman images && podman ps -a;

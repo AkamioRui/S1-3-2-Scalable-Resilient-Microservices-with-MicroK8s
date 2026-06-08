@@ -7,3 +7,9 @@ services:
       - 8000:80
     volumes:
       - ./web-api-test/:/var/www/html/
+  database-svc:
+    build: ./database
+    image: loalhost:32000/database:latest
+    ports: 
+      - "5432:5432"
+  
