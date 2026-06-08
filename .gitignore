@@ -1,4 +1,4 @@
-!images/web-api-test/
-images/
-.vscode/
-deleteme/
+images/*
+!images/web-api-test/*
+.vscode/*
+deleteme/*
