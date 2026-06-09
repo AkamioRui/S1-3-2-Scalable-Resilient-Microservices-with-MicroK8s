@@ -37,6 +37,9 @@ def fetch_and_insert(conn, ticker: str):
         return 0
 
     rows_inserted = 0
+    if isinstance(df.columns, pd.MultiIndex):
+        df.columns = df.columns.get_level_values(0)
+
     with conn.cursor() as cur:
         for ts, row in df.iterrows():  # type: ignore[union-attr]
             try:
