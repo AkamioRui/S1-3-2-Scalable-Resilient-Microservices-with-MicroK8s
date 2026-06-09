@@ -1,5 +1,6 @@
 import yfinance as yf
-import psycopg2
+import pymysql  # type: ignore
+import pandas as pd
 import time
 import os
 import logging
@@ -8,44 +9,46 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 log = logging.getLogger(__name__)
 
 DB_HOST     = os.getenv("DB_HOST", "localhost")
-DB_PORT     = os.getenv("DB_PORT", "5432")
+DB_PORT     = int(os.getenv("DB_PORT", "3306"))
 DB_NAME     = os.getenv("DB_NAME", "stockdb")
 DB_USER     = os.getenv("DB_USER", "stockuser")
-DB_PASSWORD = os.getenv("DB_PASSWORD", "stockpassword")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "stockdb")
 
-TICKERS     = os.getenv("TICKERS", "AAPL,MSFT,GOOGL,TSLA,AMZN").split(",")
-INTERVAL    = int(os.getenv("SCRAPE_INTERVAL", "60"))   
-PERIOD      = os.getenv("SCRAPE_PERIOD", "7d")          
+TICKERS  = os.getenv("TICKERS", "AAPL,MSFT,GOOGL,TSLA,AMZN").split(",")
+INTERVAL = int(os.getenv("SCRAPE_INTERVAL", "60"))
+PERIOD   = os.getenv("SCRAPE_PERIOD", "7d")
 
 
 def get_connection():
-    return psycopg2.connect(
+    return pymysql.connect(
         host=DB_HOST, port=DB_PORT,
-        dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD
+        db=DB_NAME, user=DB_USER, password=DB_PASSWORD,
+        cursorclass=pymysql.cursors.DictCursor
     )
 
 
 def fetch_and_insert(conn, ticker: str):
     log.info(f"Fetching {ticker} ...")
-    df = yf.download(ticker, period=PERIOD, interval="1h", auto_adjust=True, progress=False)
+    raw = yf.download(ticker, period=PERIOD, interval="1h", auto_adjust=True, progress=False)
+    df: pd.DataFrame = raw  # type: ignore[assignment]
 
-    if df.empty:
+    if df.empty:  # type: ignore[union-attr]
         log.warning(f"No data returned for {ticker}")
         return 0
 
     rows_inserted = 0
     with conn.cursor() as cur:
-        for ts, row in df.iterrows():
+        for ts, row in df.iterrows():  # type: ignore[union-attr]
             try:
+                ts_dt = pd.Timestamp(ts).to_pydatetime()
                 cur.execute(
                     """
-                    INSERT INTO stock_prices (ticker, ts, open, high, low, close, volume)
+                    INSERT IGNORE INTO stock_prices (ticker, ts, open, high, low, close, volume)
                     VALUES (%s, %s, %s, %s, %s, %s, %s)
-                    ON CONFLICT (ticker, ts) DO NOTHING
                     """,
                     (
                         ticker,
-                        ts.to_pydatetime(),
+                        ts_dt,
                         float(row["Open"]),
                         float(row["High"]),
                         float(row["Low"]),

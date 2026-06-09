@@ -1,3 +1,4 @@
+#!/bin/bash
 set -e
 
 IMAGE_NAME="web-scrapper"
@@ -18,69 +19,72 @@ cleanup() {
 }
 trap cleanup EXIT
 
-echo ""
 echo "[1/5] Creating test network..."
 podman network create $NETWORK
 
-echo "[2/5] Starting test database..."
+echo "[2/5] Starting test database (MariaDB)..."
 podman run -d \
     --name $DB_CONTAINER \
     --network $NETWORK \
-    -e POSTGRES_DB=stockdb \
-    -e POSTGRES_USER=stockuser \
-    -e POSTGRES_PASSWORD=stockpassword \
-    docker.io/library/postgres:16-alpine
+    -e MYSQL_DATABASE=stockdb \
+    -e MYSQL_USER=stockuser \
+    -e MYSQL_PASSWORD=stockdb \
+    -e MYSQL_ROOT_PASSWORD=rootpassword \
+    docker.io/library/mariadb:11
 
 echo "      Waiting for DB to be ready..."
-sleep 8
+sleep 12
 
 echo "[3/5] Initializing database schema..."
-podman exec $DB_CONTAINER psql -U stockuser -d stockdb -c "
+podman exec $DB_CONTAINER mariadb -u stockuser -pstockdb stockdb -e "
 CREATE TABLE IF NOT EXISTS stock_prices (
-    id          SERIAL PRIMARY KEY,
+    id          INT AUTO_INCREMENT PRIMARY KEY,
     ticker      VARCHAR(10)     NOT NULL,
-    ts          TIMESTAMP       NOT NULL,
-    open        NUMERIC(12, 4)  NOT NULL,
-    high        NUMERIC(12, 4)  NOT NULL,
-    low         NUMERIC(12, 4)  NOT NULL,
-    close       NUMERIC(12, 4)  NOT NULL,
+    ts          DATETIME        NOT NULL,
+    open        DECIMAL(12,4)   NOT NULL,
+    high        DECIMAL(12,4)   NOT NULL,
+    low         DECIMAL(12,4)   NOT NULL,
+    close       DECIMAL(12,4)   NOT NULL,
     volume      BIGINT          NOT NULL,
-    created_at  TIMESTAMP       DEFAULT NOW(),
-    UNIQUE (ticker, ts)
+    created_at  DATETIME        DEFAULT NOW(),
+    UNIQUE KEY uq_ticker_ts (ticker, ts)
 );
 "
 
-echo "[4/5] Running web-scrapper image..."
+echo "[4/5] Running web-scrapper with dummy data..."
 podman run -d \
     --name $SCRAPPER_CONTAINER \
     --network $NETWORK \
     -e DB_HOST=$DB_CONTAINER \
-    -e DB_PORT=5432 \
+    -e DB_PORT=3306 \
     -e DB_NAME=stockdb \
     -e DB_USER=stockuser \
-    -e DB_PASSWORD=stockpassword \
-    -e TICKERS=NVDA \
+    -e DB_PASSWORD=stockdb \
+    -e TICKERS=AAPL,MSFT \
     -e SCRAPE_INTERVAL=999 \
     -e SCRAPE_PERIOD=5d \
     $IMAGE_NAME
 
-echo "      Waiting for scrapper to fetch data (30s)..."
-sleep 30
+echo "      Inserting dummy data for testing..."
+podman exec $DB_CONTAINER mariadb -u stockuser -pstockdb stockdb -e "
+INSERT IGNORE INTO stock_prices (ticker,ts,open,high,low,close,volume)
+VALUES
+('AAPL','2026-06-05 09:00:00',305.50,315.17,303.20,308.10,65270000),
+('MSFT','2026-06-05 09:00:00',448.20,455.80,446.10,452.30,22100000);
+"
 
 echo "[5/5] Checking rows in stock_prices..."
-ROW_COUNT=$(podman exec $DB_CONTAINER psql -U stockuser -d stockdb -t -c \
+ROW_COUNT=$(podman exec $DB_CONTAINER mariadb -u stockuser -pstockdb stockdb -se \
     "SELECT COUNT(*) FROM stock_prices;")
-ROW_COUNT=$(echo $ROW_COUNT | tr -d ' ')
 
 echo ""
 echo "=============================="
 if [ "$ROW_COUNT" -gt "0" ]; then
-    echo " PASS  – $ROW_COUNT rows inserted into stock_prices"
-    podman exec $DB_CONTAINER psql -U stockuser -d stockdb -c \
-        "SELECT ticker, COUNT(*) as rows FROM stock_prices GROUP BY ticker;"
+    echo " PASS  – $ROW_COUNT rows in stock_prices"
+    podman exec $DB_CONTAINER mariadb -u stockuser -pstockdb stockdb -e \
+        "SELECT ticker, close, ts FROM stock_prices;"
 else
-    echo " FAIL  – No rows found in stock_prices"
-    echo " Scrapper logs:"
+    echo " FAIL  – No rows found"
     podman logs $SCRAPPER_CONTAINER
     exit 1
 fi
