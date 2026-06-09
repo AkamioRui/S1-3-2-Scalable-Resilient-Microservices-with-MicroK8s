@@ -1,0 +1,12 @@
+services:
+  database-svc:
+    build: ./
+    image: localhost:32000/database:latest
+    ports: 
+      - "3306:3306"
+    environment:
+      MARIADB_DATABASE: stockdb
+      MARIADB_USER: stockuser
+      MARIADB_PASSWORD: stockpassword
+      MARIADB_ROOT_PASSWORD: rootpassword
+  
