@@ -1,0 +1,48 @@
+version: "3"
+
+services:
+  database-svc:
+    build: ../database
+    image: localhost/database:latest
+    environment:
+      MARIADB_DATABASE: stockdb
+      MARIADB_USER: stockuser
+      MARIADB_PASSWORD: stockdb
+      MARIADB_ROOT_PASSWORD: rootpassword
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mariadb", "-u", "stockuser", "-pstockdb", "-e", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web-scrapper-svc:
+    build: ../web-scrapper
+    image: localhost/web-scrapper:latest
+    environment:
+      DB_HOST: database-svc
+      DB_PORT: "3306"
+      DB_NAME: stockdb
+      DB_USER: stockuser
+      DB_PASSWORD: stockdb
+      TICKERS: "AAPL,MSFT,GOOGL,TSLA,AMZN"
+      SCRAPE_INTERVAL: "60"
+      SCRAPE_PERIOD: "7d"
+    depends_on:
+      - database-svc
+
+  analyzer-svc:
+    build: .
+    image: localhost/analyzer:latest
+    environment:
+      DB_HOST: database-svc
+      DB_PORT: "3306"
+      DB_NAME: stockdb
+      DB_USER: stockuser
+      DB_PASSWORD: stockdb
+      ANALYZE_INTERVAL: "60"
+      PRICE_LIMIT: "300"
+    depends_on:
+      - database-svc
+      - web-scrapper-svc

@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: analyzer-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: analyzer
+  template:
+    metadata:
+      labels:
+        app: analyzer
+    spec:
+      terminationGracePeriodSeconds: 3
+      containers:
+        - name: analyzer-cont
+          image: localhost:32000/analyzer:latest
+          env:
+            - name: DB_HOST
+              value: database-svc
+            - name: DB_PORT
+              value: "3306"
+            - name: DB_NAME
+              value: stockdb
+            - name: DB_USER
+              value: stockuser
+            - name: DB_PASSWORD
+              value: stockdb
+            - name: ANALYZE_INTERVAL
+              value: "60"
+            - name: PRICE_LIMIT
+              value: "300"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "300m"
+          livenessProbe:
+            exec:
+              command:
+                - python
+                - -c
+                - "import os,time; p='/tmp/analyzer-heartbeat'; assert os.path.exists(p) and time.time() - os.path.getmtime(p) < 180"
+            initialDelaySeconds: 90
+            periodSeconds: 30
+          readinessProbe:
+            exec:
+              command:
+                - test
+                - -f
+                - /tmp/analyzer-heartbeat
+            initialDelaySeconds: 30
+            periodSeconds: 15
