@@ -53,3 +53,27 @@ Expected: `database-svc` with status `Up`.
 mysql -h 127.0.0.1 -u stockuser -p stockdb
 # password: stockpassword
 ```
+
+To finalize the check, run the `test.sh` file by typing
+
+```shell
+bash test.sh
+```
+
+the output should be
+
+```bash
+=== database-svc image test ===
+
+[1] Checking container status...
+    Container is running
+
+[2] Checking port 3306...
+    Port 3306 is open
+
+[3] Checking tables...
+    Table stock_prices exists
+    Table stock_analysis exists
+
+=== Test complete ===
+```
