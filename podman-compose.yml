@@ -1,0 +1,32 @@
+version: "3"
+
+services:
+
+  database-svc:
+    image: docker.io/library/mariadb:11
+    environment:
+      MYSQL_DATABASE: stockdb
+      MYSQL_USER: stockuser
+      MYSQL_PASSWORD: stockdb
+      MYSQL_ROOT_PASSWORD: rootpassword
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mariadb", "-u", "stockuser", "-pstockdb", "-e", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web-scrapper-svc:
+    image: localhost/web-scrapper:latest
+    environment:
+      DB_HOST: database-svc
+      DB_PORT: "3306"
+      DB_NAME: stockdb
+      DB_USER: stockuser
+      DB_PASSWORD: stockdb
+      TICKERS: "AAPL,MSFT,GOOGL,TSLA,AMZN"
+      SCRAPE_INTERVAL: "60"
+      SCRAPE_PERIOD: "7d"
+    depends_on:
+      - database-svc
